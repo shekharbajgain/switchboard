@@ -105,15 +105,17 @@ export function evaluateProfile(profile: Profile): Outcome {
 
 // ---------------------------------------------------------------------------
 // RUNNING-COST COMPARISON — honest "what it costs to heat each year" estimate.
-// Rough NYC placeholders ($ per million BTU of delivered heat). Heat pumps beat
-// oil and electric-resistance; versus cheap natural gas they usually cost MORE
-// to run at NYC's high electricity rates — we show that straight, not hide it.
+// Rough NYC placeholders ($ per million BTU of delivered heat). The honest NYC
+// reality: a heat pump is a clear monthly win only vs. electric-resistance;
+// vs. OIL it's roughly a wash (efficient pump vs. very pricey Con Ed electricity);
+// vs. cheap GAS it usually costs MORE. We show that straight, not hide it — the
+// case for switching is the incentives + AC, not a lower monthly bill.
 // All figures are illustrative and labeled "verify" in the UI.
 // ---------------------------------------------------------------------------
 const FUEL_COST_PER_MMBTU: Record<Fuel, number> = {
-  oil: 40, gas: 20, steam: 30, 'electric-resistance': 85, unsure: 34,
+  oil: 36, gas: 19, steam: 30, 'electric-resistance': 85, unsure: 33,
 }
-const HEATPUMP_COST_PER_MMBTU = 29
+const HEATPUMP_COST_PER_MMBTU = 34
 const ANNUAL_HEAT_MMBTU: Record<BuildingType, number> = {
   '1-family': 75, '2-4-family': 105, 'coop-condo': 45, 'larger': 120,
 }
@@ -134,6 +136,6 @@ export function runningCost(profile: Profile, billOverride?: number): RunningCos
   const currentAnnual = fromBill ? Math.round(billOverride as number) : Math.round(mmbtu * rate)
   const heatpumpAnnual = Math.round(currentAnnual * (HEATPUMP_COST_PER_MMBTU / rate))
   const delta = currentAnnual - heatpumpAnnual
-  const verdict = delta > 150 ? 'cheaper' : delta < -150 ? 'pricier' : 'similar'
+  const verdict = delta > 400 ? 'cheaper' : delta < -400 ? 'pricier' : 'similar'
   return { fuel: profile.fuel, currentAnnual, heatpumpAnnual, delta, fromBill, verdict }
 }

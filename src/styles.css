@@ -299,6 +299,8 @@ body {
 .rc-input:focus { outline: none; }
 .rc-input-wrap:focus-within { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
 .rc-hint { color: var(--faint); }
+.rc-worth { margin-top: 12px; font-size: 13.5px; color: var(--muted); line-height: 1.5; background: #fbfdfc; border: 1px dashed #c5d8cf; border-radius: 10px; padding: 11px 13px; }
+.rc-worth strong { color: var(--green-deep); }
 
 /* AI reasoning trace */
 .reasoning { background: linear-gradient(180deg, #fbfdfc, #f3f8f5); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }

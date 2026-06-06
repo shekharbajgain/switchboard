@@ -334,7 +334,7 @@ function Results(props: {
         )}
       </div>
 
-      <RunningCostCard profile={profile} />
+      <RunningCostCard profile={profile} outcome={outcome} />
 
       <ReasoningPanel profile={profile} outcome={outcome} />
 
@@ -429,7 +429,7 @@ const FUEL_WORD: Record<Fuel, string> = {
   'electric-resistance': 'electric baseboard', 'unsure': 'your current heat',
 }
 
-function RunningCostCard({ profile }: { profile: Profile }) {
+function RunningCostCard({ profile, outcome }: { profile: Profile; outcome: ReturnType<typeof evaluateProfile> }) {
   const [bill, setBill] = useState('')
   const rc = runningCost(profile, bill ? Number(bill) : undefined)
   const word = FUEL_WORD[profile.fuel]
@@ -448,9 +448,12 @@ function RunningCostCard({ profile }: { profile: Profile }) {
         </div>
       </div>
       <div className={`rc-verdict ${rc.verdict}`}>
-        {rc.verdict === 'cheaper' && <>≈ {usd(rc.delta)}/yr cheaper to run — heat pumps are 3–4× more efficient, and {word} is one of the pricier fuels.</>}
-        {rc.verdict === 'similar' && <>About the same to run — the real win here is the upfront incentives and the added air conditioning.</>}
-        {rc.verdict === 'pricier' && <>≈ {usd(-rc.delta)}/yr <strong>more</strong> to run — NYC electricity is pricey, so for {word} the win is the upfront incentives, the added AC, and lower emissions, not the monthly bill. (We’d rather tell you straight.)</>}
+        {rc.verdict === 'cheaper' && <>≈ {usd(rc.delta)}/yr cheaper to run — a clear monthly win (a heat pump is far more efficient than {word}).</>}
+        {rc.verdict === 'similar' && <>About the same to run — NYC’s pricey electricity roughly cancels the heat pump’s efficiency, so don’t expect a big monthly cut.</>}
+        {rc.verdict === 'pricier' && <>≈ {usd(-rc.delta)}/yr <strong>more</strong> to run — {word} is cheap, so the monthly bill isn’t the reason here. (We’d rather tell you straight.)</>}
+      </div>
+      <div className="rc-worth">
+        <strong>So why switch?</strong> The monthly bill is the smallest part — the payoff is the <strong>≈{usd(outcome.totalPoint)} in incentives</strong>, the <strong>central AC</strong> you also get, and getting off {word}. That’s the real win.
       </div>
       <div className="rc-refine">
         <span>Know your real yearly heating bill?</span>
