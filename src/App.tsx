@@ -3,7 +3,7 @@ import {
   PERSONAS, Profile, Measure, Ownership, BuildingType, Fuel, IncomeBand,
 } from './data/incentives'
 import { evaluateProfile, runningCost, Scored } from './engine/engine'
-import { narrate } from './engine/explain'
+import { narrate, reasoningSteps } from './engine/explain'
 
 type Screen = 'landing' | 1 | 2 | 3 | 4 | 5 | 'results'
 
@@ -336,6 +336,8 @@ function Results(props: {
 
       <RunningCostCard profile={profile} />
 
+      <ReasoningPanel profile={profile} outcome={outcome} />
+
       <h3 className="section-h">Your stack</h3>
       <div className="stack-list">
         {outcome.stack.map(s => <StackCard key={s.program.id} s={s} />)}
@@ -403,7 +405,8 @@ function StackCard({ s }: { s: Scored }) {
 function AttentionCard({ s }: { s: Scored }) {
   const { program, result } = s
   const chip =
-    result.status === 'unconfirmed' ? { cls: 'chip-amber', text: 'Can’t confirm yet' }
+    result.status === 'expired' ? { cls: 'chip-red', text: 'Expired — gone for 2026' }
+    : result.status === 'unconfirmed' ? { cls: 'chip-amber', text: 'Can’t confirm yet' }
     : result.status === 'not-eligible' ? { cls: 'chip-red', text: 'Not you — here’s why' }
     : { cls: 'chip-gray', text: 'Checked · N/A' }
   return (
@@ -457,5 +460,21 @@ function RunningCostCard({ profile }: { profile: Profile }) {
         <span className="ph">estimate · verify</span>
       </div>
     </div>
+  )
+}
+
+function ReasoningPanel({ profile, outcome }: { profile: Profile; outcome: ReturnType<typeof evaluateProfile> }) {
+  const steps = reasoningSteps(profile, outcome)
+  return (
+    <details className="reasoning">
+      <summary><span className="reasoning-spark" aria-hidden>✦</span> How Switchboard reasoned — step by step</summary>
+      <ol className="reasoning-list">
+        {steps.map((s, i) => <li key={i}>{s}</li>)}
+      </ol>
+      <p className="reasoning-note">
+        This is the real logic the engine ran — grounded only in named programs, so it can’t invent a number.
+        It’s the drop-in point for a live AI model, which would write this same explanation from the same grounded facts.
+      </p>
+    </details>
   )
 }

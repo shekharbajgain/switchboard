@@ -33,6 +33,7 @@ export type Status =
   | 'unconfirmed'    // we can't ground a number, so we refuse to invent one
   | 'not-eligible'   // honestly does not apply to this household
   | 'not-applicable' // not relevant to what they selected
+  | 'expired'        // a real program that has ended (e.g. federal 25C after 2025)
 
 export interface ProgramEval {
   status: Status
@@ -56,7 +57,7 @@ export interface Program {
 
 // Illustrative assumed project cost for an outer-borough 2-family:
 // whole-home cold-climate heat pump + insulation / air-sealing. Placeholder.
-export const ASSUMED_PROJECT_COST = 24000
+export const ASSUMED_PROJECT_COST = 26000
 
 const wants = (p: Profile, m: Measure) => p.measures.includes(m)
 const isOwner = (p: Profile) => p.ownership === 'own'
@@ -72,8 +73,8 @@ export const PROGRAMS: Program[] = [
     verifyAt: 'IRS — Energy Efficient Home Improvement Credit (25C)',
     evaluate: p =>
       wants(p, 'heat-pump')
-        ? { status: 'qualifies', amount: 2000,
-            reason: '30% of your heat-pump cost, capped at $2,000 — income doesn’t matter. (Verify current federal status.)' }
+        ? { status: 'expired',
+            reason: 'The federal 25C tax credit (up to $2,000 for a heat pump) EXPIRED Dec 31, 2025 — not available for 2026 installs. Geothermal still qualifies through 2032. We don’t count money you can’t claim.' }
         : { status: 'not-applicable', reason: 'No heat pump selected.' },
   },
   {
@@ -86,8 +87,8 @@ export const PROGRAMS: Program[] = [
     verifyAt: 'IRS — Energy Efficient Home Improvement Credit (25C)',
     evaluate: p =>
       wants(p, 'insulation')
-        ? { status: 'qualifies', amount: 1200,
-            reason: '30% of insulation & air-sealing, capped at $1,200 a year. (Verify current federal status.)' }
+        ? { status: 'expired',
+            reason: 'The federal 25C credit for insulation & air-sealing (up to $1,200/yr) EXPIRED Dec 31, 2025 — gone for 2026. We won’t show money that no longer exists.' }
         : { status: 'not-applicable', reason: 'No insulation work selected.' },
   },
   {
@@ -95,14 +96,14 @@ export const PROGRAMS: Program[] = [
     name: 'NYS Clean Heat — heat-pump rebate (via Con Edison)',
     funder: 'Con Edison',
     kind: 'Rebate',
-    estLow: 2000, estHigh: 6000,
+    estLow: 4000, estHigh: 10000,
     requiresParticipatingContractor: true,
     claimTiming: 'Applied by your contractor at install — money off the top.',
     verifyAt: 'NYS Clean Heat / Con Edison',
     evaluate: p =>
       wants(p, 'heat-pump')
-        ? { status: 'qualifies', amount: 3000,
-            reason: 'Utility rebate for a cold-climate heat pump, paid through a participating contractor.' }
+        ? { status: 'qualifies', amount: 8000,
+            reason: 'Con Edison’s NYS Clean Heat rebate for a cold-climate heat pump — up to ~$8,000 (≈$10,000 in disadvantaged communities), paid through a participating contractor.' }
         : { status: 'not-applicable', reason: 'No heat pump selected.' },
   },
   {

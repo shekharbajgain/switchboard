@@ -62,6 +62,7 @@ export function evaluateProfile(profile: Profile): Outcome {
   const attention = scored.filter(s =>
     s.result.status === 'unconfirmed' ||
     s.result.status === 'not-eligible' ||
+    s.result.status === 'expired' ||
     (s.result.status === 'not-applicable' && s.program.alwaysSurface),
   )
 
