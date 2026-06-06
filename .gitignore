@@ -4,3 +4,6 @@ dist-ssr
 *.local
 .vite
 .DS_Store
+
+# Internal team guide (demo script + judge-Q&A) — kept local, not published
+SWITCHBOARD-GUIDE.md
