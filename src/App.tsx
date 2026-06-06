@@ -2,7 +2,7 @@ import { useMemo, useState, type Dispatch, type SetStateAction } from 'react'
 import {
   PERSONAS, Profile, Measure, Ownership, BuildingType, Fuel, IncomeBand,
 } from './data/incentives'
-import { evaluateProfile, Scored } from './engine/engine'
+import { evaluateProfile, runningCost, Scored } from './engine/engine'
 import { narrate } from './engine/explain'
 
 type Screen = 'landing' | 1 | 2 | 3 | 4 | 5 | 'results'
@@ -334,6 +334,8 @@ function Results(props: {
         )}
       </div>
 
+      <RunningCostCard profile={profile} />
+
       <h3 className="section-h">Your stack</h3>
       <div className="stack-list">
         {outcome.stack.map(s => <StackCard key={s.program.id} s={s} />)}
@@ -414,6 +416,45 @@ function AttentionCard({ s }: { s: Scored }) {
       <div className="pcard-reason">{result.reason}</div>
       <div className="pcard-foot">
         <span className="timing">Verify at: {program.verifyAt}</span>
+      </div>
+    </div>
+  )
+}
+
+const FUEL_WORD: Record<Fuel, string> = {
+  'oil': 'oil', 'gas': 'gas', 'steam': 'steam',
+  'electric-resistance': 'electric baseboard', 'unsure': 'your current heat',
+}
+
+function RunningCostCard({ profile }: { profile: Profile }) {
+  const [bill, setBill] = useState('')
+  const rc = runningCost(profile, bill ? Number(bill) : undefined)
+  const word = FUEL_WORD[profile.fuel]
+  return (
+    <div className="card runcost">
+      <h3 className="runcost-title">What it costs to heat — every year</h3>
+      <div className="runcost-grid">
+        <div className="rc-col">
+          <span className="rc-label">Now ({word})</span>
+          <span className="rc-num">≈ {usd(rc.currentAnnual)}<span className="rc-per">/yr</span></span>
+        </div>
+        <span className="rc-arrow" aria-hidden>→</span>
+        <div className="rc-col">
+          <span className="rc-label">With a heat pump</span>
+          <span className="rc-num hp">≈ {usd(rc.heatpumpAnnual)}<span className="rc-per">/yr</span></span>
+        </div>
+      </div>
+      <div className={`rc-verdict ${rc.verdict}`}>
+        {rc.verdict === 'cheaper' && <>≈ {usd(rc.delta)}/yr cheaper to run — heat pumps are 3–4× more efficient, and {word} is one of the pricier fuels.</>}
+        {rc.verdict === 'similar' && <>About the same to run — the real win here is the upfront incentives and the added air conditioning.</>}
+        {rc.verdict === 'pricier' && <>≈ {usd(-rc.delta)}/yr <strong>more</strong> to run — NYC electricity is pricey, so for {word} the win is the upfront incentives, the added AC, and lower emissions, not the monthly bill. (We’d rather tell you straight.)</>}
+      </div>
+      <div className="rc-refine">
+        <span>Know your real yearly heating bill?</span>
+        <span className="rc-input-wrap">$<input className="rc-input" inputMode="numeric" placeholder={String(rc.currentAnnual)} value={bill}
+          onChange={e => setBill(e.target.value.replace(/\D/g, '').slice(0, 6))} /></span>
+        <span className="rc-hint">for a sharper number</span>
+        <span className="ph">estimate · verify</span>
       </div>
     </div>
   )

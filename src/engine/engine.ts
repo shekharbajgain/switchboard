@@ -1,5 +1,5 @@
 import {
-  PROGRAMS, ASSUMED_PROJECT_COST, Profile, Program, ProgramEval, Fuel,
+  PROGRAMS, ASSUMED_PROJECT_COST, Profile, Program, ProgramEval, Fuel, BuildingType,
 } from '../data/incentives'
 
 // ---------------------------------------------------------------------------
@@ -100,4 +100,39 @@ export function evaluateProfile(profile: Profile): Outcome {
     percentOff, contractorGatedTotal, contractorGatedNames, federalTotal, stateUtilTotal, claimPlan,
     impact: computeImpact(profile),
   }
+}
+
+// ---------------------------------------------------------------------------
+// RUNNING-COST COMPARISON — honest "what it costs to heat each year" estimate.
+// Rough NYC placeholders ($ per million BTU of delivered heat). Heat pumps beat
+// oil and electric-resistance; versus cheap natural gas they usually cost MORE
+// to run at NYC's high electricity rates — we show that straight, not hide it.
+// All figures are illustrative and labeled "verify" in the UI.
+// ---------------------------------------------------------------------------
+const FUEL_COST_PER_MMBTU: Record<Fuel, number> = {
+  oil: 40, gas: 20, steam: 30, 'electric-resistance': 85, unsure: 34,
+}
+const HEATPUMP_COST_PER_MMBTU = 29
+const ANNUAL_HEAT_MMBTU: Record<BuildingType, number> = {
+  '1-family': 75, '2-4-family': 105, 'coop-condo': 45, 'larger': 120,
+}
+
+export interface RunningCost {
+  fuel: Fuel
+  currentAnnual: number
+  heatpumpAnnual: number
+  delta: number // positive = heat pump is cheaper to run
+  fromBill: boolean
+  verdict: 'cheaper' | 'similar' | 'pricier'
+}
+
+export function runningCost(profile: Profile, billOverride?: number): RunningCost {
+  const rate = FUEL_COST_PER_MMBTU[profile.fuel] ?? 34
+  const mmbtu = ANNUAL_HEAT_MMBTU[profile.building] ?? 90
+  const fromBill = !!(billOverride && billOverride > 0)
+  const currentAnnual = fromBill ? Math.round(billOverride as number) : Math.round(mmbtu * rate)
+  const heatpumpAnnual = Math.round(currentAnnual * (HEATPUMP_COST_PER_MMBTU / rate))
+  const delta = currentAnnual - heatpumpAnnual
+  const verdict = delta > 150 ? 'cheaper' : delta < -150 ? 'pricier' : 'similar'
+  return { fuel: profile.fuel, currentAnnual, heatpumpAnnual, delta, fromBill, verdict }
 }
