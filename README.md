@@ -29,5 +29,3 @@ Dataset (truth)  ->  Engine (reasoning)  ->  Narrator (plain language)  ->  UI
 - Program names and rules are real and kept **current for 2026** — the app already reflects that the **federal 25C tax credit expired Dec 31, 2025** (shown as "Expired", not counted) and uses Con Edison's real ~$8k NYS Clean Heat rebate. Some dollar amounts remain labeled "verify".
 - v1 scope: heating electrification (heat pump, insulation, induction).
 - Two one-click demo personas: **Maria** (2-family, oil, moderate income) and **Darnell** (income-qualified, unlocks the free EmPower+ track).
-
-See **[`SWITCHBOARD-GUIDE.md`](SWITCHBOARD-GUIDE.md)** for the full team guide, demo script, and judge-Q&A playbook.
